@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Register from './components/Register';
 import Login from './components/Login';
 import ForgotPassword from './components/ForgotPassword';
@@ -7,6 +8,7 @@ import ResetPassword from './components/ResetPassword';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import StaffDashboard from './components/StaffDashboard';
+import DisplayDashboard from './components/DisplayDashboard';
 
 const App: React.FC = () => {
   // Kontrollon nëse ka token në LocalStorage
@@ -26,6 +28,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <Toaster position="top-center" reverseOrder={false} />
       <div style={{ minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
         <Routes>
           {/* Rruga kryesore që bën ridrejtimin inteligjent */}
@@ -35,6 +38,7 @@ const App: React.FC = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/display" element={<DisplayDashboard />} />
 
           {/* Mbrojtja e Rrugëve (Protected Routes) */}
           <Route 

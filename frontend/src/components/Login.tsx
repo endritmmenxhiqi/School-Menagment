@@ -1,25 +1,22 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [msg, setMsg] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // Ndalon rifreskimin e faqes
+    e.preventDefault();
     setLoading(true);
     setMsg('');
 
     try {
-      console.log("Duke dërguar kërkesën...");
-      
       const res = await axios.post('http://localhost:5000/api/login', { email, password });
       
-      // Kontrolli nëse serveri ktheu të dhëna
       if (!res.data || !res.data.user) {
         setMsg("Të dhënat e përdoruesit nuk u morën nga serveri.");
         setLoading(false);
@@ -27,40 +24,33 @@ const Login = () => {
       }
 
       const { session, user } = res.data;
-
-      // Përgatitja e të dhënave
       const userId = user.id || user._id;
       const userRole = user.role ? user.role.toLowerCase().trim() : '';
       const fullName = user.fullName || user.full_name || 'Përdorues';
 
-      console.log("Të dhënat e login-it:", { userId, userRole });
-
-      // Ruajtja në LocalStorage
       localStorage.setItem('token', session?.access_token || '');
       localStorage.setItem('role', userRole);
       
       const userObj = {
         id: userId,
-        full_name: fullName,
+        full_name: fullName !== 'Përdorues' ? fullName : '',
+        email: email,
         role: userRole,
         department: user.department || ''
       };
 
       localStorage.setItem('user', JSON.stringify(userObj));
+      localStorage.setItem('userEmail', email);
 
-      // RIDREJTIMI ME NJË VONESË TË VOGËL (për të shmangur reload-in e gabuar)
       setTimeout(() => {
         if (userRole === 'admin') {
-          console.log("Ridrejtim: Admin");
-          navigate('/admin-dashboard');
-        } else if (userRole === 'staf-admin' || userRole === 'staff') {
-          console.log("Ridrejtim: Staff");
-          navigate('/staff-dashboard');
+          window.location.href = '/admin-dashboard';
+        } else if (userRole === 'staf-admin' || userRole === 'staff' || userRole === 'staf') {
+          window.location.href = '/staff-dashboard';
         } else {
-          console.log("Ridrejtim: Dashboard");
-          navigate('/dashboard');
+          window.location.href = '/dashboard';
         }
-      }, 100);
+      }, 300);
 
     } catch (err: any) {
       console.error("GABIM NE LOGIN:", err);
@@ -71,80 +61,436 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div style={styles.iconCircle}>🎓</div>
-        <h1 style={styles.title}>Mirë se vini</h1>
-        <p style={styles.subtitle}>Identifikohu në sistemin SQMS</p>
-      </div>
+    <div style={styles.wrapper}>
+      {/* Background decoration */}
+      <div style={styles.bgOrb1} />
+      <div style={styles.bgOrb2} />
+      <div style={styles.bgOrb3} />
 
-      <div style={styles.card}>
-        <form onSubmit={handleLogin}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email Adresa</label>
-            <input 
-              type="email" 
-              placeholder="emri@email.com" 
-              style={styles.input} 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
+      <div style={styles.container}>
+        {/* Left side - Branding */}
+        <div style={styles.brandSide}>
+          <div style={styles.brandContent}>
+            <div style={styles.logoRow}>
+              <div style={styles.logoIcon}>⚡</div>
+              <span style={styles.logoLabel}>QueueFlow</span>
+            </div>
+            <h1 style={styles.brandTitle}>Sistemi i Menaxhimit të Radhës Shkollore</h1>
+            <p style={styles.brandDesc}>Platforma moderne për organizimin e radhëve, biletave dhe shërbimeve shkollore me efikasitet maksimal.</p>
+            
+            <div style={styles.featureList}>
+              <div style={styles.featureItem}>
+                <div style={styles.featureIcon}>🎫</div>
+                <div>
+                  <p style={styles.featureTitle}>Bileta Digjitale</p>
+                  <p style={styles.featureDesc}>Merr biletën online pa pritje fizike</p>
+                </div>
+              </div>
+              <div style={styles.featureItem}>
+                <div style={styles.featureIcon}>📊</div>
+                <div>
+                  <p style={styles.featureTitle}>Monitorim Live</p>
+                  <p style={styles.featureDesc}>Ndiq radhën në kohë reale</p>
+                </div>
+              </div>
+              <div style={styles.featureItem}>
+                <div style={styles.featureIcon}>🔔</div>
+                <div>
+                  <p style={styles.featureTitle}>Njoftime Automatike</p>
+                  <p style={styles.featureDesc}>Merr njoftim kur të vjen radha</p>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Fjalëkalimi</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              style={styles.input} 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
+        {/* Right side - Login Form */}
+        <div style={styles.formSide}>
+          <div style={styles.formContainer}>
+            <div style={styles.formHeader}>
+              <div style={styles.avatarCircle}>
+                <span style={{ fontSize: '28px' }}>🎓</span>
+              </div>
+              <h2 style={styles.formTitle}>Mirë se vini!</h2>
+              <p style={styles.formSubtitle}>Identifikohu për të vazhduar</p>
+            </div>
+
+            <form onSubmit={handleLogin} style={styles.form}>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Email Adresa</label>
+                <div style={styles.inputWrapper}>
+                  <span style={styles.inputIcon}>✉️</span>
+                  <input 
+                    type="email" 
+                    placeholder="emri@email.com" 
+                    style={styles.input} 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Fjalëkalimi</label>
+                <div style={styles.inputWrapper}>
+                  <span style={styles.inputIcon}>🔒</span>
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    style={styles.input} 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required 
+                  />
+                  <span 
+                    style={styles.eyeIcon} 
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={styles.forgotRow}>
+                <Link to="/forgot-password" style={styles.forgotLink}>
+                  Harrove fjalëkalimin?
+                </Link>
+              </div>
+
+              {msg && (
+                <div style={styles.errorBox}>
+                  <span style={{ marginRight: '8px' }}>⚠️</span>{msg}
+                </div>
+              )}
+
+              <button type="submit" style={{
+                ...styles.submitBtn,
+                opacity: loading ? 0.7 : 1,
+                transform: loading ? 'none' : undefined,
+              }} disabled={loading}>
+                {loading ? (
+                  <span style={styles.loadingSpinner}>⟳ Duke u procesuar...</span>
+                ) : (
+                  <>Identifikohu <span style={{ marginLeft: '8px' }}>→</span></>
+                )}
+              </button>
+            </form>
+
+            <div style={styles.divider}>
+              <span style={styles.dividerLine} />
+              <span style={styles.dividerText}>ose</span>
+              <span style={styles.dividerLine} />
+            </div>
+
+            <p style={styles.footer}>
+              Nuk ke llogari?{' '}
+              <Link to="/register" style={styles.registerLink}>Regjistrohu këtu</Link>
+            </p>
           </div>
-
-          <div style={styles.forgotContainer}>
-            <Link to="/forgot-password" style={styles.forgotLink}>
-              Harrove fjalëkalimin?
-            </Link>
-          </div>
-
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? "Duke u procesuar..." : "Identifikohu →"}
-          </button>
-        </form>
-
-        <div style={styles.footer}>
-          Nuk ke llogari? <Link to="/register" style={styles.link}>Regjistrohu këtu</Link>
         </div>
       </div>
-
-      {msg && (
-        <div style={styles.errorBox}>
-          {msg}
-        </div>
-      )}
     </div>
   );
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f4f7f6', fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '20px' },
-  header: { textAlign: 'center', marginBottom: '30px' },
-  iconCircle: { backgroundColor: '#e6f4f1', color: '#1fbba6', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '35px', margin: '0 auto 15px auto' },
-  title: { fontSize: '32px', fontWeight: 'bold', color: '#222', margin: '5px 0' },
-  subtitle: { color: '#666', fontSize: '16px' },
-  card: { backgroundColor: '#fff', padding: '45px', borderRadius: '25px', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', width: '100%', maxWidth: '500px' },
-  inputGroup: { marginBottom: '20px' },
-  label: { display: 'block', fontWeight: '600', fontSize: '15px', color: '#333', marginBottom: '8px' },
-  input: { width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #ddd', backgroundColor: '#fafafa', boxSizing: 'border-box', fontSize: '16px', outline: 'none' },
-  forgotContainer: { textAlign: 'right', marginBottom: '25px' },
-  forgotLink: { color: '#1fbba6', textDecoration: 'none', fontSize: '14px', fontWeight: '500' },
-  button: { width: '100%', padding: '16px', backgroundColor: '#1fbba6', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' },
-  footer: { textAlign: 'center', marginTop: '25px', fontSize: '15px', color: '#777' },
-  link: { color: '#1fbba6', textDecoration: 'none', fontWeight: 'bold' },
-  errorBox: { marginTop: '20px', padding: '12px', borderRadius: '10px', backgroundColor: '#ffebee', color: '#c62828', fontWeight: 'bold', maxWidth: '500px', textAlign: 'center', width: '100%', boxSizing: 'border-box' }
+  wrapper: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    padding: '20px',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  bgOrb1: {
+    position: 'absolute',
+    width: '500px',
+    height: '500px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(31, 187, 166, 0.15) 0%, transparent 70%)',
+    top: '-100px',
+    right: '-100px',
+    pointerEvents: 'none' as any,
+  },
+  bgOrb2: {
+    position: 'absolute',
+    width: '400px',
+    height: '400px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+    bottom: '-80px',
+    left: '-80px',
+    pointerEvents: 'none' as any,
+  },
+  bgOrb3: {
+    position: 'absolute',
+    width: '300px',
+    height: '300px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(31, 187, 166, 0.08) 0%, transparent 70%)',
+    top: '50%',
+    left: '30%',
+    pointerEvents: 'none' as any,
+  },
+  container: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    width: '100%',
+    maxWidth: '1100px',
+    minHeight: '650px',
+    borderRadius: '24px',
+    overflow: 'hidden',
+    boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4)',
+    position: 'relative' as any,
+    zIndex: 1,
+  },
+  brandSide: {
+    flex: '1 1 420px',
+    background: 'linear-gradient(160deg, #1FBBA6 0%, #14917e 50%, #0f766e 100%)',
+    padding: 'clamp(30px, 6vw, 60px)',
+    display: 'flex',
+    flexDirection: 'column' as any,
+    justifyContent: 'center',
+    position: 'relative' as any,
+  },
+  brandContent: {
+    position: 'relative' as any,
+    zIndex: 2,
+  },
+  logoRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '35px',
+  },
+  logoIcon: {
+    background: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(10px)',
+    padding: '10px 14px',
+    borderRadius: '14px',
+    fontSize: '24px',
+  },
+  logoLabel: {
+    color: '#fff',
+    fontSize: '22px',
+    fontWeight: '800',
+    letterSpacing: '-0.5px',
+  },
+  brandTitle: {
+    color: '#fff',
+    fontSize: 'clamp(20px, 3.4vw, 32px)',
+    fontWeight: '800',
+    lineHeight: '1.2',
+    marginBottom: '16px',
+    letterSpacing: '-0.5px',
+  },
+  brandDesc: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: '15px',
+    lineHeight: '1.7',
+    marginBottom: '40px',
+  },
+  featureList: {
+    display: 'flex',
+    flexDirection: 'column' as any,
+    gap: '20px',
+  },
+  featureItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+    padding: '14px 18px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '14px',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+  },
+  featureIcon: {
+    fontSize: '24px',
+    width: '44px',
+    height: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: '12px',
+    flexShrink: 0,
+  },
+  featureTitle: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: '14px',
+    margin: '0 0 3px 0',
+  },
+  featureDesc: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: '12px',
+    margin: 0,
+  },
+  formSide: {
+    flex: '1 1 420px',
+    background: '#fff',
+    padding: '0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: '420px',
+    padding: 'clamp(22px, 6vw, 50px)',
+  },
+  formHeader: {
+    textAlign: 'center' as any,
+    marginBottom: '35px',
+  },
+  avatarCircle: {
+    width: 'clamp(48px, 8vw, 68px)',
+    height: 'clamp(48px, 8vw, 68px)',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #e6faf7, #d1fae5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 16px auto',
+    boxShadow: '0 4px 15px rgba(31, 187, 166, 0.15)',
+  },
+  formTitle: {
+    fontSize: '26px',
+    fontWeight: '800',
+    color: '#0f172a',
+    margin: '0 0 6px 0',
+    letterSpacing: '-0.5px',
+  },
+  formSubtitle: {
+    color: '#94a3b8',
+    fontSize: '14px',
+    margin: 0,
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column' as any,
+    gap: '20px',
+  },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column' as any,
+    gap: '7px',
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#475569',
+    letterSpacing: '0.3px',
+  },
+  inputWrapper: {
+    position: 'relative' as any,
+    display: 'flex',
+    alignItems: 'center',
+  },
+  inputIcon: {
+    position: 'absolute' as any,
+    left: '14px',
+    fontSize: '16px',
+    pointerEvents: 'none' as any,
+    opacity: 0.6,
+  },
+  input: {
+    width: '100%',
+    padding: '14px 14px 14px 44px',
+    borderRadius: '12px',
+    border: '2px solid #e2e8f0',
+    backgroundColor: '#f8fafc',
+    fontSize: '15px',
+    outline: 'none',
+    transition: 'all 0.2s',
+    color: '#1e293b',
+    boxSizing: 'border-box' as any,
+    fontFamily: 'Inter, sans-serif',
+  },
+  eyeIcon: {
+    position: 'absolute' as any,
+    right: '14px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    opacity: 0.5,
+    userSelect: 'none' as any,
+  },
+  forgotRow: {
+    textAlign: 'right' as any,
+    marginTop: '-8px',
+  },
+  forgotLink: {
+    color: '#1FBBA6',
+    textDecoration: 'none',
+    fontSize: '13px',
+    fontWeight: '600',
+  },
+  errorBox: {
+    padding: '12px 16px',
+    borderRadius: '10px',
+    background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+    color: '#dc2626',
+    fontSize: '13px',
+    fontWeight: '600',
+    border: '1px solid #fecaca',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  submitBtn: {
+    width: '100%',
+    padding: '15px',
+    background: 'linear-gradient(135deg, #1FBBA6, #14917e)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '16px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 15px rgba(31, 187, 166, 0.3)',
+    letterSpacing: '0.3px',
+    fontFamily: 'Inter, sans-serif',
+  },
+  loadingSpinner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+    margin: '25px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: '#e2e8f0',
+  },
+  dividerText: {
+    color: '#94a3b8',
+    fontSize: '12px',
+    fontWeight: '500',
+  },
+  footer: {
+    textAlign: 'center' as any,
+    fontSize: '14px',
+    color: '#64748b',
+    margin: 0,
+  },
+  registerLink: {
+    color: '#1FBBA6',
+    textDecoration: 'none',
+    fontWeight: '700',
+  },
 };
 
 export default Login;

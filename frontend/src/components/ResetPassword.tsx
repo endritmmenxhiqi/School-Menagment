@@ -132,18 +132,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 auto 20px auto',
   },
   title: {
-    fontSize: '36px',
+    fontSize: 'clamp(24px, 4vw, 36px)',
     fontWeight: 'bold',
     color: '#222',
     margin: '10px 0',
   },
   subtitle: {
     color: '#666',
-    fontSize: '18px',
+    fontSize: 'clamp(14px, 2.5vw, 18px)',
   },
   card: {
     backgroundColor: '#fff',
-    padding: '60px', 
+    padding: 'clamp(24px, 5vw, 60px)', 
     borderRadius: '30px',
     boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
     width: '100%',
@@ -161,7 +161,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   input: {
     width: '100%',
-    padding: '18px 20px',
+    padding: 'clamp(12px, 3vw, 18px) clamp(14px, 3.5vw, 20px)',
     borderRadius: '15px',
     border: '1px solid #e0e0e0',
     backgroundColor: '#fafafa',
@@ -170,7 +170,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   button: {
     width: '100%',
-    padding: '20px',
+    padding: 'clamp(12px, 3.5vw, 20px)',
     backgroundColor: '#1fbba6',
     color: '#fff',
     border: 'none',
